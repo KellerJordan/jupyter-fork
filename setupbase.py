@@ -238,32 +238,6 @@ def run(cmd, *args, **kwargs):
     return check_call(cmd, *args, **kwargs)
 
 
-class CompileBackendTranslation(Command):
-    description = "compile the .po files into .mo files, that contain the translations."
-
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-
-    def run(self):
-        paths = glob('notebook/i18n/??_??')
-        for p in paths:
-            LANG = p[-5:]
-            for component in ['notebook', 'nbui']:
-                run(['pybabel', 'compile',
-                     '-D', component,
-                     '-f',
-                     '-l', LANG,
-                     '-i', pjoin('notebook', 'i18n', LANG, 'LC_MESSAGES', component+'.po'),
-                     '-o', pjoin('notebook', 'i18n', LANG, 'LC_MESSAGES', component+'.mo')
-                    ])
-
-
 def patch_out_bootstrap_bw_print():
     """Hack! Manually patch out the bootstrap rule that forces printing in B&W.
 

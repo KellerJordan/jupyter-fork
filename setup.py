@@ -58,7 +58,6 @@ from setupbase import (
     find_packages,
     find_package_data,
     check_package_data_first,
-    CompileBackendTranslation,
 )
 
 
@@ -155,7 +154,6 @@ setup_args['cmdclass'] = {
     'build_py': check_package_data_first(build_py),
     'sdist' : sdist,
     'develop': develop,
-    'backendtranslations': CompileBackendTranslation,
     'bdist_egg': bdist_egg if 'bdist_egg' in sys.argv else bdist_egg_disabled,
 }
 
