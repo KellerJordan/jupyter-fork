@@ -302,7 +302,6 @@ class NotebookWebApplication(web.Application):
             allow_password_change=jupyter_app.allow_password_change,
             server_root_dir=root_dir,
             jinja2_env=env,
-            terminals_available=False,
         )
 
         # allow custom overrides for the tornado web app.
@@ -394,10 +393,6 @@ class NotebookWebApplication(web.Application):
         ]
         try:
             sources.append(self.settings['api_last_activity'])
-        except KeyError:
-            pass
-        try:
-            sources.append(self.settings['terminal_last_activity'])
         except KeyError:
             pass
         sources.extend(self.settings['last_activity_times'].values())
@@ -1581,8 +1576,6 @@ class NotebookApp(JupyterApp):
         if self.authenticate_prometheus is True and newauth is False:
             self.log.info(_("Authentication of /metrics is being turned OFF."))
         self.authenticate_prometheus = newauth
-
-    terminals_available = False
 
     def parse_command_line(self, argv=None):
         super().parse_command_line(argv)

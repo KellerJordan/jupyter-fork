@@ -49,7 +49,6 @@ class TreeHandler(IPythonHandler):
                 page_title=page_title,
                 notebook_path=path,
                 breadcrumbs=breadcrumbs,
-                terminals_available=False,
                 server_root=self.settings['server_root_dir'],
                 shutdown_button=self.settings.get('shutdown_button', False)
             ))
