@@ -76,7 +76,6 @@ class TestWithSetUmask(unittest.TestCase):
         # restore umask
         os.umask(umask)
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="do not run on windows")
     def test_atomic_writing_umask(self):
         with TemporaryDirectory() as td:
             os.umask(0o022)

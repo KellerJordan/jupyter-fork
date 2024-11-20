@@ -79,16 +79,3 @@ def test_is_hidden():
         assert is_hidden(subdir56) == True
         assert is_file_hidden(subdir56) == False
         assert is_file_hidden(subdir56, os.stat(subdir56)) == False
-
-@pytest.mark.skipif(sys.platform != "win32", reason="run on windows only")
-def test_is_hidden_win32():
-    with TemporaryDirectory() as root:
-        root = cast_unicode(root)
-        subdir1 = os.path.join(root, 'subdir')
-        os.makedirs(subdir1)
-        assert not is_hidden(subdir1, root)
-        r = ctypes.windll.kernel32.SetFileAttributesW(subdir1, 0x02)
-        print(r)
-        assert is_hidden(subdir1, root)
-        assert is_file_hidden(subdir1)
-

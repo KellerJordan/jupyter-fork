@@ -322,8 +322,6 @@ class APITest(NotebookTestBase):
             self.api.read('foo/q.ipynb')
 
     def test_get_404_hidden(self):
-        if sys.platform == 'win32':
-            self.skipTest("Disabled copying hidden files on Windows")
         self.make_txt('.hidden/visible.txt', 'test string')
         self.make_txt('.hidden.txt', 'test string')
         with assert_http_error(404):
@@ -454,8 +452,6 @@ class APITest(NotebookTestBase):
         self.assertEqual(model['content'], body)
 
     def test_upload_txt_hidden(self):
-        if sys.platform == 'win32':
-            self.skipTest("Disabled copying hidden files on Windows")
         with assert_http_error(400):
             body = 'ünicode téxt'
             model = {
@@ -553,8 +549,6 @@ class APITest(NotebookTestBase):
         self._check_created(resp, 'å b/a-Copy1.ipynb')
 
     def test_copy_400_hidden(self):
-        if sys.platform == 'win32':
-            self.skipTest("Disabled copying hidden files on Windows")
         self.make_txt('new.txt', 'test string')
         self.make_txt('.hidden/new.txt', 'test string')
         self.make_txt('.hidden.txt', 'test string')
@@ -572,8 +566,6 @@ class APITest(NotebookTestBase):
             resp = self.api.copy_put('å b/ç d.ipynb', 'å b/cøpy.ipynb')
 
     def test_copy_put_400_hidden(self):
-        if sys.platform == 'win32':
-            self.skipTest("Disabled copying hidden files on Windows")
         with assert_http_error(400):
             resp = self.api.copy_put('.hidden/old.txt', 'new.txt')
         with assert_http_error(400):
@@ -611,8 +603,6 @@ class APITest(NotebookTestBase):
         self.assertEqual(listing, [])
 
     def test_delete_non_empty_dir(self):
-        if sys.platform == 'win32':
-            self.skipTest("Disabled deleting non-empty dirs on Windows")
         # Test that non empty directory can be deleted
         try:
             self.api.delete('å b')
@@ -626,8 +616,6 @@ class APITest(NotebookTestBase):
             self.api.list('å b')
 
     def test_delete_hidden_dir(self):
-        if sys.platform == 'win32':
-            self.skipTest("Disabled deleting hidden dirs on Windows")
         with assert_http_error(400):
             # Test that non empty directory can be deleted
             try:
@@ -638,8 +626,6 @@ class APITest(NotebookTestBase):
 
     def test_delete_hidden_file(self):
         #Test deleting file in a hidden directory
-        if sys.platform == 'win32':
-            self.skipTest("Disabled deleting hidden dirs on Windows")
         with assert_http_error(400):
             # Test that non empty directory can be deleted
             self.api.delete('.hidden/test.txt')
@@ -661,8 +647,6 @@ class APITest(NotebookTestBase):
         self.assertNotIn('a.ipynb', nbnames)
 
     def test_rename_400_hidden(self):
-        if sys.platform == 'win32':
-            self.skipTest("Disabled copying hidden files on Windows")
         # self.make_txt('new.txt', 'test string')
         # self.make_txt('.hidden/new.txt', 'test string')
         # self.make_txt('.hidden.txt', 'test string')

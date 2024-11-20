@@ -14,7 +14,6 @@ from ..utils import urlencode_unix_socket, urlencode_unix_socket_path
 pytestmark = pytest.mark.integration_tests
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="do not run on windows")
 def test_shutdown_sock_server_integration():
     sock = UNIXSocketNotebookTestBase.sock
     url = urlencode_unix_socket(sock).encode()
@@ -141,7 +140,6 @@ def test_stop_multi_integration():
     p3.wait()
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="do not run on windows")
 def test_launch_socket_collision():
     """Tests UNIX socket in-use detection for lifecycle correctness."""
     sock = UNIXSocketNotebookTestBase.sock

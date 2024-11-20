@@ -92,38 +92,6 @@ def url_unescape(path):
     ])
 
 
-def is_file_hidden_win(abs_path, stat_res=None):
-    """Is a file hidden?
-
-    This only checks the file itself; it should be called in combination with
-    checking the directory containing the file.
-
-    Use is_hidden() instead to check the file and its parent directories.
-
-    Parameters
-    ----------
-    abs_path : unicode
-        The absolute path to check.
-    stat_res : os.stat_result, optional
-        Ignored on Windows, exists for compatibility with POSIX version of the
-        function.
-    """
-    if os.path.basename(abs_path).startswith('.'):
-        return True
-
-    win32_FILE_ATTRIBUTE_HIDDEN = 0x02
-    try:
-        attrs = ctypes.windll.kernel32.GetFileAttributesW(
-            py3compat.cast_unicode(abs_path)
-        )
-    except AttributeError:
-        pass
-    else:
-        if attrs > 0 and attrs & win32_FILE_ATTRIBUTE_HIDDEN:
-            return True
-
-    return False
-
 def is_file_hidden_posix(abs_path, stat_res=None):
     """Is a file hidden?
 
@@ -163,10 +131,7 @@ def is_file_hidden_posix(abs_path, stat_res=None):
 
     return False
 
-if sys.platform == 'win32':
-    is_file_hidden = is_file_hidden_win
-else:
-    is_file_hidden = is_file_hidden_posix
+is_file_hidden = is_file_hidden_posix
 
 def is_hidden(abs_path, abs_root=''):
     """Is a file hidden or contained in a hidden directory?
@@ -282,16 +247,6 @@ def check_version(v, check):
         return True
 
 
-def _check_pid_win32(pid):
-    import ctypes
-    # OpenProcess returns 0 if no such process (of ours) exists
-    # positive int otherwise
-    handle = ctypes.windll.kernel32.OpenProcess(1,0,pid)
-    if handle:
-        # the handle must be closed or the kernel process object won't be freed
-        ctypes.windll.kernel32.CloseHandle( handle )
-    return bool(handle)
-
 def _check_pid_posix(pid):
     """Copy of IPython.utils.process.check_pid"""
     try:
@@ -306,10 +261,7 @@ def _check_pid_posix(pid):
     else:
         return True
 
-if sys.platform == 'win32':
-    check_pid = _check_pid_win32
-else:
-    check_pid = _check_pid_posix
+check_pid = _check_pid_posix
 
 
 def maybe_future(obj):

@@ -124,7 +124,6 @@ class TestFileContentsManager(TestCase):
             # broken symlinks should still be shown in the contents manager
             self.assertTrue('bad symlink' in contents)
 
-    @skipIf(sys.platform == 'win32', "will not run on windows")
     def test_recursive_symlink(self):
         with TemporaryDirectory() as td:
             cm = FileContentsManager(root_dir=td)
@@ -679,11 +678,6 @@ class TestContentsManager(TestCase):
         self.assertRaises(HTTPError, cm.get, path)
         # Fetching the notebook under the new name is successful
         assert isinstance(cm.get("changed_path"), dict)
-
-        # Test validation.  Currently, only Windows has a non-empty set of invalid characters
-        if sys.platform == 'win32' and isinstance(cm, FileContentsManager):
-            with self.assertRaisesHTTPError(400):
-                cm.rename("changed_path", "prevent: in name")
 
         # Ported tests on nested directory renaming from pgcontents
         all_dirs = ['foo', 'bar', 'foo/bar', 'foo/bar/foo', 'foo/bar/foo/bar']

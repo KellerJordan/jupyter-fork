@@ -23,11 +23,8 @@ from glob import glob
 from multiprocessing.pool import ThreadPool
 from subprocess import check_call
 
-if sys.platform == 'win32':
-    from subprocess import list2cmdline
-else:
-    def list2cmdline(cmd_list):
-        return ' '.join(map(pipes.quote, cmd_list))
+def list2cmdline(cmd_list):
+    return ' '.join(map(pipes.quote, cmd_list))
 
 
 #-------------------------------------------------------------------------------
@@ -191,35 +188,14 @@ except ImportError:
             return None
         path = path.split(os.pathsep)
 
-        if sys.platform == "win32":
-            # The current directory takes precedence on Windows.
-            if not os.curdir in path:
-                path.insert(0, os.curdir)
-
-            # PATHEXT is necessary to check on Windows.
-            pathext = os.environ.get("PATHEXT", "").split(os.pathsep)
-            # See if the given file matches any of the expected path extensions.
-            # This will allow us to short circuit when given "python.exe".
-            # If it does match, only test that one, otherwise we have to try
-            # others.
-            if any(cmd.lower().endswith(ext.lower()) for ext in pathext):
-                files = [cmd]
-            else:
-                files = [cmd + ext for ext in pathext]
-        else:
-            # On other platforms you don't have things like PATHEXT to tell you
-            # what file suffixes are executable, so just pass on cmd as-is.
-            files = [cmd]
-
         seen = set()
         for dir in path:
             normdir = os.path.normcase(dir)
             if not normdir in seen:
                 seen.add(normdir)
-                for thefile in files:
-                    name = os.path.join(dir, thefile)
-                    if _access_check(name, mode):
-                        return name
+                name = os.path.join(dir, cmd)
+                if _access_check(name, mode):
+                    return name
         return None
 
 
@@ -234,7 +210,7 @@ def mtime(path):
 def run(cmd, *args, **kwargs):
     """Echo a command before running it"""
     log.info('> ' + list2cmdline(cmd))
-    kwargs['shell'] = (sys.platform == 'win32')
+    kwargs['shell'] = False
     return check_call(cmd, *args, **kwargs)
 
 

@@ -320,7 +320,6 @@ class TestInstallNBExtension(TestCase):
         assert check_nbextension([f], user=True)
         assert not check_nbextension([f, pjoin('dne', f)], user=True)
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="do not run on windows")
     def test_install_symlink(self):
         with TemporaryDirectory() as d:
             f = 'ƒ.js'
@@ -332,7 +331,6 @@ class TestInstallNBExtension(TestCase):
         link = os.readlink(dest)
         self.assertEqual(link, src)
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="do not run on windows")
     def test_overwrite_broken_symlink(self):
         with TemporaryDirectory() as d:
             f = 'ƒ.js'
@@ -348,7 +346,6 @@ class TestInstallNBExtension(TestCase):
         link = os.readlink(dest)
         self.assertEqual(link, src2)
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="do not run on windows")
     def test_install_symlink_destination(self):
         with TemporaryDirectory() as d:
             f = 'ƒ.js'
@@ -361,7 +358,6 @@ class TestInstallNBExtension(TestCase):
         link = os.readlink(dest)
         self.assertEqual(link, src)
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="do not run on windows")
     def test_install_symlink_bad(self):
         with self.assertRaises(ValueError):
             install_nbextension("http://example.com/foo.js", symlink=True)
