@@ -532,6 +532,8 @@ class IPythonHandler(AuthenticatedHandler):
             xsrf_form_html=self.xsrf_form_html,
             token=self.token,
             xsrf_token=self.xsrf_token.decode('utf8'),
+            nbjs_translations=json.dumps(combine_translations(
+                self.request.headers.get('Accept-Language', ''))),
             show_banner=self.show_banner,
             **self.jinja_template_vars
         )
