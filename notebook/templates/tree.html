@@ -87,15 +87,6 @@ data-server-root="{{server_root}}"
                     <li role="none" id="new-folder">
                         <a role="menuitem" tabindex="-1" href="#">{% trans %}Folder{% endtrans %}</a>
                     </li>
-                    {% if terminals_available %}
-                    <li role="none" id="new-terminal">
-                        <a role="menuitem" tabindex="-1" href="#">{% trans %}Terminal{% endtrans %}</a>
-                    </li>
-                    {% else %}
-                    <li role="none" id="new-terminal-disabled" class="disabled">
-                        <a role="menuitem" tabindex="-1" href="#">{% trans %}Terminals Unavailable{% endtrans %}</a>
-                    </li>
-                    {% endif %}
                   </ul>
                 </div>
                 <div class="btn-group">
@@ -165,26 +156,6 @@ data-server-root="{{server_root}}"
             </div>
           </div>
           <div class="panel-group" id="accordion" >
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <a data-toggle="collapse" data-target="#collapseOne" href="#">
-                  Terminals
-                </a>
-              </div>
-              <div id="collapseOne" class=" collapse in">
-                <div class="panel-body">
-                  <div id="terminal_list">
-                    <div id="terminal_list_header" class="row list_placeholder">
-                    {% if terminals_available %}
-                      <div> {% trans %}There are no terminals running.{% endtrans %} </div>
-                    {% else %}
-                      <div> {% trans %}Terminals are unavailable.{% endtrans %} </div>
-                    {% endif %}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="panel panel-default">
               <div class="panel-heading">
                 <a data-toggle="collapse" data-target="#collapseTwo" href="#">

@@ -197,10 +197,6 @@ msgid ""
 "        "
 msgstr ""
 
-#: notebook/notebookapp.py:761
-msgid "Supply overrides for terminado. Currently only supports \"shell_command\"."
-msgstr ""
-
 #: notebook/notebookapp.py:764
 msgid "Extra keyword arguments to pass to `set_secure_cookie`. See tornado's set_secure_cookie docs for details."
 msgstr ""

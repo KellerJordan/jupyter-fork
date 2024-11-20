@@ -126,13 +126,6 @@ try:
 except ImportError:
     async_kernel_mgmt_available = False
 
-# Tolerate missing terminado package.
-try:
-    from .terminal import TerminalManager
-    terminado_available = True
-except ImportError:
-    terminado_available = False
-
 #-----------------------------------------------------------------------------
 # Module globals
 #-----------------------------------------------------------------------------
@@ -309,7 +302,7 @@ class NotebookWebApplication(web.Application):
             allow_password_change=jupyter_app.allow_password_change,
             server_root_dir=root_dir,
             jinja2_env=env,
-            terminals_available=terminado_available and jupyter_app.terminals_enabled,
+            terminals_available=False,
         )
 
         # allow custom overrides for the tornado web app.
@@ -690,8 +683,6 @@ class NotebookApp(JupyterApp):
         ContentsManager, FileContentsManager, NotebookNotary,
         GatewayKernelManager, GatewayKernelSpecManager, GatewaySessionManager, GatewayClient,
     ]
-    if terminado_available:  # Only necessary when terminado is available
-        classes.append(TerminalManager)
 
     flags = Dict(flags)
     aliases = Dict(aliases)
@@ -1217,11 +1208,6 @@ class NotebookApp(JupyterApp):
         See the tornado docs for WebSocketHandler.get_compression_options for details.
         """)
     )
-    terminado_settings = Dict(config=True,
-            help=_('Supply overrides for terminado. Currently only supports "shell_command". '
-                 'On Unix, if "shell_command" is not provided, a non-login shell is launched '
-                 "by default when the notebook server is connected to a terminal, a login "
-                 "shell otherwise."))
 
     cookie_options = Dict(config=True,
         help=_("Extra keyword arguments to pass to `set_secure_cookie`."
@@ -1565,24 +1551,14 @@ class NotebookApp(JupyterApp):
         check the message and data rate limits."""))
 
     shutdown_no_activity_timeout = Integer(0, config=True,
-        help=("Shut down the server after N seconds with no kernels or "
-              "terminals running and no activity. "
+        help=("Shut down the server after N seconds with no kernels "
+              "running and no activity. "
               "This can be used together with culling idle kernels "
               "(MappingKernelManager.cull_idle_timeout) to "
               "shutdown the notebook server when it's not in use. This is not "
               "precisely timed: it may shut down up to a minute later. "
               "0 (the default) disables this automatic shutdown.")
     )
-
-    terminals_enabled = Bool(True, config=True,
-         help=_("""Set to False to disable terminals.
-
-         This does *not* make the notebook server more secure by itself.
-         Anything the user can in a terminal, they can also do in a notebook.
-
-         Terminals may also be automatically disabled if the terminado package
-         is not available.
-         """))
 
     authenticate_prometheus = Bool(
         True,
@@ -1606,13 +1582,6 @@ class NotebookApp(JupyterApp):
             self.log.info(_("Authentication of /metrics is being turned OFF."))
         self.authenticate_prometheus = newauth
 
-    # Since use of terminals is also a function of whether the terminado package is
-    # available, this variable holds the "final indication" of whether terminal functionality
-    # should be considered (particularly during shutdown/cleanup).  It is enabled only
-    # once both the terminals "service" can be initialized and terminals_enabled is True.
-    # Note: this variable is slightly different from 'terminals_available' in the web settings
-    # in that this variable *could* remain false if terminado is available, yet the terminal
-    # service's initialization still fails.  As a result, this variable holds the truth.
     terminals_available = False
 
     def parse_command_line(self, argv=None):
@@ -1898,17 +1867,6 @@ class NotebookApp(JupyterApp):
         proto = 'https' if self.certfile else 'http'
         return "%s://%s:%i%s" % (proto, ip, port or self.port, self.base_url)
 
-    def init_terminals(self):
-        if not self.terminals_enabled:
-            return
-
-        try:
-            from .terminal import initialize
-            initialize(nb_app=self)
-            self.terminals_available = True
-        except ImportError as e:
-            self.log.warning(_("Terminals not available (error was %s)"), e)
-
     def init_signal(self):
         if not sys.platform.startswith('win') and sys.stdin and sys.stdin.isatty():
             signal.signal(signal.SIGINT, self._handle_sigint)
@@ -2057,28 +2015,23 @@ class NotebookApp(JupyterApp):
         mimetypes.add_type('application/wasm', '.wasm')
 
     def shutdown_no_activity(self):
-        """Shutdown server on timeout when there are no kernels or terminals."""
+        """Shutdown server on timeout when there are no kernels."""
         km = self.kernel_manager
         if len(km) != 0:
             return   # Kernels still running
-
-        if self.terminals_available:
-            term_mgr = self.web_app.settings['terminal_manager']
-            if term_mgr.terminals:
-                return   # Terminals still running
 
         seconds_since_active = \
             (utcnow() - self.web_app.last_activity()).total_seconds()
         self.log.debug("No activity for %d seconds.",
                        seconds_since_active)
         if seconds_since_active > self.shutdown_no_activity_timeout:
-            self.log.info("No kernels or terminals for %d seconds; shutting down.",
+            self.log.info("No kernels for %d seconds; shutting down.",
                           seconds_since_active)
             self.stop()
 
     def init_shutdown_no_activity(self):
         if self.shutdown_no_activity_timeout > 0:
-            self.log.info("Will shut down after %d seconds with no kernels or terminals.",
+            self.log.info("Will shut down after %d seconds with no kernels.",
                           self.shutdown_no_activity_timeout)
             pc = ioloop.PeriodicCallback(self.shutdown_no_activity, 60000)
             pc.start()
@@ -2155,7 +2108,6 @@ class NotebookApp(JupyterApp):
         self.init_server_extension_config()
         self.init_components()
         self.init_webapp()
-        self.init_terminals()
         self.init_signal()
         self.init_server_extensions()
         self.init_mime_overrides()
@@ -2171,21 +2123,6 @@ class NotebookApp(JupyterApp):
         kernel_msg = trans.ngettext('Shutting down %d kernel', 'Shutting down %d kernels', n_kernels)
         self.log.info(kernel_msg % n_kernels)
         run_sync(self.kernel_manager.shutdown_all())
-
-    def cleanup_terminals(self):
-        """Shutdown all terminals.
-
-        The terminals will shutdown themselves when this process no longer exists,
-        but explicit shutdown allows the TerminalManager to cleanup.
-        """
-        if not self.terminals_available:
-            return
-
-        terminal_manager = self.web_app.settings['terminal_manager']
-        n_terminals = len(terminal_manager.list())
-        terminal_msg = trans.ngettext('Shutting down %d terminal', 'Shutting down %d terminals', n_terminals)
-        self.log.info(terminal_msg % n_terminals)
-        run_sync(terminal_manager.terminate_all())
 
     def notebook_info(self, kernel_count=True):
         "Return the current working directory and the server url information"
@@ -2392,7 +2329,6 @@ class NotebookApp(JupyterApp):
             self.remove_server_info_file()
             self.remove_browser_open_file()
             self.cleanup_kernels()
-            self.cleanup_terminals()
 
     def stop(self):
         def _stop():

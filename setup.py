@@ -87,7 +87,6 @@ for more information.
         'nest-asyncio>=1.5',
         'ipykernel', # bless IPython kernel for now
         'Send2Trash>=1.8.0',
-        'terminado>=0.8.3',
         'prometheus_client',
         'nbclassic>=0.4.7',
     ],
